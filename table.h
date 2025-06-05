@@ -46,14 +46,23 @@ typedef size_t(*hashfuncT)(char *key);
 #define htclean(table)              (__htclean(table))
 
 typedef struct {
-    size_t vtype;
-    hashfuncT hasher;
-} TableHeader;
-
-typedef struct {
     char *key;
     void *value;
 } KVPair;
+
+void ***__htinit(size_t vtype, hashfuncT hasher);
+void *__htset(void ***table, char *key);
+void *__htget(void ***table, char *key);
+void *__htvalue(KVPair *kv);
+void  __htclean(void ***table);
+KVPair *__httryget(void ***table, char *key);
+
+#ifdef HASH_TABLE_IMPLEMENTATION
+
+typedef struct {
+    size_t vtype;
+    hashfuncT hasher;
+} TableHeader;
 
 typedef struct TableItem {
     char *key;
@@ -271,4 +280,6 @@ void __htclean(void ***table) {
     } 
 }
 
-#endif
+#endif // HASH_TABLE_IMPLEMENTATION
+
+#endif // HASH_TABLE

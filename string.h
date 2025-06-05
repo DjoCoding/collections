@@ -13,7 +13,26 @@ typedef struct {
     size_t count;
 } String;
 
-void strclean(String s);
+
+String str(char *data, size_t count);
+String strnull();
+String strfromcstr(const char *cstr);
+String strclone(String s);
+String stradd(String a, String b);
+String strupper(String s);
+String strlower(String s);
+size_t strfind(String a, String b);
+String strsub(String a, size_t from, size_t to);
+String strtrimleft(String a);
+String strtrimright(String a);
+String strtrim(String s);
+bool   strexists(String a, String b);
+void   strclean(String s);
+char  *strtocstr(String s);
+void   strdump(String s);
+size_t strcount(String s);
+
+#ifdef STRING_IMPLEMENTATION
 
 String str(char *data, size_t count) {
     return (String) {
@@ -83,9 +102,9 @@ size_t strfind(String a, String b) {
     
     size_t base     = 0;
     
-    while (base < a.count - b.count) {
+    while (base <= a.count - b.count) {
         if(a.data[base] == b.data[0]) {
-            size_t offset   = 0;
+            size_t offset   = 1;
             while(offset < b.count) {
                 if(b.data[offset] != a.data[base + offset]) break;
                 offset += 1;
@@ -169,6 +188,11 @@ void strdump(String s) {
     fprintf(stdout, "%.*s\n", (int)s.count, s.data);
 }
 
+size_t strcount(String s) {
+    return s.count;
+}
 
 
-#endif
+#endif // STRING_IMPLEMENTATION
+
+#endif // STRING_H
