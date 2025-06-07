@@ -15,34 +15,34 @@ typedef size_t(*hashfuncT)(char *key);
 
 #define Table(T) void ***
 
-// V: Hash Table Item Value Type
-// hasher: Custom Hash Function Of Type size_t(*hashfuncT)(char *key)
-// htinit initializes the hash table.
+// `V`: Hash Table Item Value Type
+// `hasher`: Custom Hash Function Of Type size_t(*hashfuncT)(char *key)
+// `htinit` initializes the hash table.
 #define htinit(V, hasher)           (__htinit(sizeof(V), (hashfuncT)(hasher)))
 
-// V: Hash Table Item Value Type
-// table: HashTable<V>
-// key: key for mapping
-// htset creates a new hash table item and returns a pointer to its value.
+// `V`: Hash Table Item Value Type
+// `table`: HashTable<V>
+// `key`: key for mapping
+// `htset` creates a new hash table item and returns a pointer to its value.
 #define htset(V, table, key)        ((V *)(__htset(table, key)))
 
-// table: HashTable<V>
-// key: key for mapping
-// httryget tries to get the item by key. if the key is not found, it will return NULL, else it returns the key value pair.
+// `table`: HashTable<V>
+// `key`: key for mapping
+// `httryget` tries to get the item by key. if the key is not found, it will return NULL, else it returns the key value pair.
 #define httryget(table, key)        (__httryget(table, key))
 
-// table: HashTable<V>
-// key: key for mapping
-// htget gets the value of the key in the table. (It will raise an error if the key is not found in the table).
+// `table`: HashTable<V>
+// `key`: key for mapping
+// `htget` gets the value of the key in the table. (It will raise an error if the key is not found in the table).
 #define htget(V, table, key)        (*((V *)__htget(table, key)))
 
-// V: Hash Table Item Value Type
-// kv: KVPair<char *, V>
-// a utility function to get the value of a KVPair.
+// `V`: Hash Table Item Value Type
+// `kv`: KVPair<char *, V>
+// `a` utility function to get the value of a KVPair.
 #define htvalue(V, kv)              (*(V *)__htvalue(kv))
 
-// table: HashTable<V>
-// htclean cleans the table memory. 
+// `table`: HashTable<V>
+// `htclean` cleans the table memory. 
 #define htclean(table)              (__htclean(table))
 
 typedef struct {
@@ -71,7 +71,7 @@ typedef struct TableItem {
 } TableItem;
 
 
-// murmur3_64 hash function 
+// `murmur3_64` hash function 
 size_t defhashfunc(char *key) {
     size_t len      = strlen(key);
     uint32_t seed   = 42;
@@ -85,7 +85,7 @@ size_t defhashfunc(char *key) {
     const uint64_t c1 = 0x87c37b91114253d5ULL;
     const uint64_t c2 = 0x4cf5ad432745937fULL;
 
-    // body
+    // `body`
     const uint64_t *blocks = (const uint64_t *)(data);
     for (int i = 0; i < nblocks; i++) {
         uint64_t k1 = blocks[i * 2 + 0];
@@ -98,7 +98,7 @@ size_t defhashfunc(char *key) {
         h2 = (h2 << 31) | (h2 >> 33); h2 += h1; h2 = h2 * 5 + 0x38495ab5;
     }
 
-    // tail
+    // `tail`
     const uint8_t *tail = (const uint8_t *)(data + nblocks * 16);
     uint64_t k1 = 0, k2 = 0;
 
@@ -123,14 +123,14 @@ size_t defhashfunc(char *key) {
                  k1 *= c1; k1 = (k1 << 31) | (k1 >> 33); k1 *= c2; h1 ^= k1;
     }
 
-    // finalization
+    // `finalization`
     h1 ^= len;
     h2 ^= len;
 
     h1 += h2;
     h2 += h1;
 
-    // fmix64
+    // `fmix64`
     h1 ^= h1 >> 33;
     h1 *= 0xff51afd7ed558ccdULL;
     h1 ^= h1 >> 33;
@@ -149,7 +149,7 @@ size_t defhashfunc(char *key) {
 }
 
 TableHeader *__header(size_t vtype, hashfuncT hasher) {
-    // one additional pointer for the table.
+    // `one` additional pointer for the table.
     TableHeader *header = (TableHeader *)malloc(sizeof(TableHeader) + sizeof(void *));
     assert(header != NULL && "ERROR: malloc failed.");
 
@@ -280,6 +280,6 @@ void __htclean(void ***table) {
     } 
 }
 
-#endif // HASH_TABLE_IMPLEMENTATION
+#endif // `HASH_TABLE_IMPLEMENTATION`
 
-#endif // HASH_TABLE
+#endif // `HASH_TABLE`
