@@ -7,7 +7,7 @@
 void        *__array_at(void *arr, size_t idx);
 void        *__array_create(size_t item_size);
 void        *__array_append(void *arr);
-void        *__array_clear(void *arr);
+void        __array_clear(void *arr);
 void        *__array_pop(void *arr);
 size_t      __array_length(void *arr);
 void        __array_destroy(void *arr);
@@ -73,9 +73,8 @@ void        __array_destroy(void *arr);
  *
  * @tparam T The element type.
  * @param p  Pointer to the array.
- * @return Pointer to the cleared array.
  */
-#define array_clear(T, p)           ((T *)(__array_clear(p)))
+#define array_clear(T, p)           (__array_clear(p))
 
 /**
  * @brief Retrieves the element at a specific index.
@@ -206,10 +205,9 @@ void *__array_append(void *arr) {
     return data;
 }
 
-void *__array_clear(void *arr) {
+void __array_clear(void *arr) {
     ArrayHeader *header = arrheader(arr);
     header->length = 0;
-    return arr;
 }
 
 void *__array_pop(void *arr) {
