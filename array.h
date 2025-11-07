@@ -12,6 +12,21 @@ void        *__array_pop(void *arr);
 size_t      __array_length(void *arr);
 void        __array_destroy(void *arr);
 
+/**
+ * @brief Defines a generic array type for a given element type.
+ *
+ * This macro provides a convenient way to declare a pointer to a type `T` as an array.
+ * It does not allocate memory by itself; you need to use a creation function like `array_create`.
+ *
+ * Example:
+ * ```c
+ * Array(int) numbers;          // equivalent to int *numbers;
+ * numbers = array_create(int); // allocate array
+ * ```
+ *
+ * @tparam T The element type of the array.
+ */
+#define Array(T) T *
 
 /**
  * @brief Creates a new dynamic array for elements of type `T`.
