@@ -68,13 +68,12 @@ void        __array_destroy(void *arr);
  *
  * Example:
  * ```c
- * array_clear(int, arr);
+ * array_clear(arr);
  * ```
  *
- * @tparam T The element type.
  * @param p  Pointer to the array.
  */
-#define array_clear(T, p)           (__array_clear(p))
+#define array_clear(p)           (__array_clear(p))
 
 /**
  * @brief Retrieves the element at a specific index.
