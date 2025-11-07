@@ -125,7 +125,7 @@ void        __array_destroy(void *arr);
 
 #include <stdlib.h>
 
-#define ARRAY_INITIAL_CAPACITY 10
+#define __ARRAY_INITIAL_CAPACITY 10
 
 typedef struct {
     size_t  length;
@@ -143,17 +143,17 @@ typedef struct {
  *
  * Example:
  * ```c
- * ArrayHeader *h = hft(array_data);
+ * ArrayHeader *h = arrheader(array_data);
  * size_t length = h->length;
  * ```
  *
  * @param p Pointer to the start of the array data.
  * @return Pointer to the `ArrayHeader` structure associated with the array.
  */
-#define hft(p) ((ArrayHeader *)(p) - 1)
+#define arrheader(p) ((ArrayHeader *)(p) - 1)
 
 void *__array_create(size_t item_size) {
-    void **p = malloc(sizeof(ArrayHeader) + ARRAY_INITIAL_CAPACITY * item_size);
+    void **p = malloc(sizeof(ArrayHeader) + __ARRAY_INITIAL_CAPACITY * item_size);
     if(!p) {
         fprintf(stderr, "__array_create failed: cannot allocate memory.\n");
         exit(EXIT_FAILURE);
@@ -161,7 +161,7 @@ void *__array_create(size_t item_size) {
 
     ArrayHeader *header = (ArrayHeader *)p;
     header->item_size   = item_size;
-    header->cap         = ARRAY_INITIAL_CAPACITY;
+    header->cap         = __ARRAY_INITIAL_CAPACITY;
     header->length      = 0;
 
     void *data = (void *)(header + 1);
@@ -169,7 +169,7 @@ void *__array_create(size_t item_size) {
 }
 
 void *__array_append(void *arr) {
-    ArrayHeader *header = hft(arr);
+    ArrayHeader *header = arrheader(arr);
     
     if(header->length < header->cap) {
         header->length += 1;
@@ -192,13 +192,13 @@ void *__array_append(void *arr) {
 }
 
 void *__array_clear(void *arr) {
-    ArrayHeader *header = hft(arr);
+    ArrayHeader *header = arrheader(arr);
     header->length = 0;
     return arr;
 }
 
 void *__array_pop(void *arr) {
-    ArrayHeader *header = hft(arr);
+    ArrayHeader *header = arrheader(arr);
     if(header->length == 0) {
         fprintf(stderr, "__array_pop failed: array is empty.\n");
         exit(EXIT_FAILURE);
@@ -211,7 +211,7 @@ void *__array_pop(void *arr) {
 }
 
 void *__array_at(void *arr, size_t idx) {
-    ArrayHeader *header = hft(arr);
+    ArrayHeader *header = arrheader(arr);
     if(idx >= header->length) {
         fprintf(stderr, "__array_at failed: index out of range.\n");
         exit(EXIT_FAILURE);
@@ -220,12 +220,12 @@ void *__array_at(void *arr, size_t idx) {
 }
 
 size_t __array_length(void *arr) {
-    ArrayHeader *header = hft(arr);
+    ArrayHeader *header = arrheader(arr);
     return header->length;
 }
 
 void __array_destroy(void *arr) {
-    ArrayHeader *header = hft(arr);
+    ArrayHeader *header = arrheader(arr);
     free(header);
 }
 
