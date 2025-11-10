@@ -42,7 +42,7 @@ typedef struct TableNode TableNode;
  * @tparam V The value type.
  * @return Pointer to the start of the table data.
  */
-#define table_create(K, V) ((Table)__table_create(sizeof(K), sizeof(V)))
+#define table_create(K, V) ((Table(K, V))__table_create(sizeof(K), sizeof(V)))
 
 /**
  * @brief Inserts or updates a key–value pair in the table.
