@@ -11,7 +11,20 @@ bool    __table_exists(void *table, void *key);
 void    __table_destroy(void *table);
 
 typedef struct TableNode TableNode;
-typedef TableNode **Table;
+
+/**
+ * @brief Macro used purely as a documentation placeholder and type alias
+ * for a generic Table or Hash Map structure.
+ * * This definition is not meant to provide type safety or structural information
+ * to the compiler. It merely allows developers to write code that looks like:
+ * 'Table(KeyType, ValueType) my_map;' for readability.
+ * * In reality, the type resolves to a generic void pointer, and type safety
+ * must be managed manually by the programmer using casts.
+ * * @param K The type of the keys to be stored in the table.
+ * @param V The type of the values to be stored in the table.
+ * @return `void*` A generic pointer to the underlying table structure.
+ */
+#define Table(K, V)             void *
 
 
 /**
