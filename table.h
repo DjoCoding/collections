@@ -7,6 +7,7 @@
 void    *__table_create(size_t key_size, size_t value_size);
 void    *__table_get(void *table, void *key);
 void     __table_set(void *table, void *key, void *value);
+bool    __table_delete(void *table, void *key);
 bool    __table_exists(void *table, void *key);
 void    __table_destroy(void *table);
 
@@ -85,6 +86,25 @@ typedef struct TableNode TableNode;
  * @return The value associated with the key.
  */
 #define table_get(T, t, k) (*(T *)__table_get(t, (void *)(k)))
+
+
+/**
+ * @brief Deletes a key–value entry from the hash table. 
+ *
+ * Finds the entry associated with the given key and removes it from the table.
+ * Note that this macro performs a generic cast to facilitate calling the 
+ * underlying implementation function.
+ *
+ * Example:
+ * ```c
+ * // Assume 'user_table' stores char* keys.
+ * table_delete(user_table, "alice");
+ * ```
+ *
+ * @param t The pointer to the hash table (Table type).
+ * @param k The key of the entry to be deleted. The macro casts this to void*.
+ */
+#define table_delete(t, k)   (__table_delete(t, (void *)k))
 
 /**
  * @brief Checks whether a key exists in the table.
@@ -239,6 +259,25 @@ void __table_set(void *table, void *key, void *value) {
     };
 
     memcpy(current->value, value, header->value_size);
+}
+
+void __table_delete(void *table, void *key) {
+    TableHeader *header = tableheader(table);
+    size_t index = __table_get_index__(table, key);
+
+    TableNode *prev    = NULL;
+    TableNode *current = ((TableNode **)table)[index];
+    while(current != NULL) {
+        if(memcmp(current->key, key, header->key_size) == 0) break;
+        current = current->next;
+    }
+
+    if(!current) return;
+
+    prev->next = current->next;
+    if(current->next) current->next->prev = prev;
+
+    free(current);
 }
 
 bool __table_exists(void *table, void *key) {
