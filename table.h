@@ -7,8 +7,10 @@
 void    *__table_create(size_t key_size, size_t value_size);
 void    *__table_get(void *table, void *key);
 void     __table_set(void *table, void *key, void *value);
-bool    __table_delete(void *table, void *key);
+void    __table_delete(void *table, void *key);
 bool    __table_exists(void *table, void *key);
+void    __table_rewind(void *table);
+void    *__table_next(void *table);
 void    __table_destroy(void *table);
 
 typedef struct TableNode TableNode;
@@ -122,6 +124,48 @@ typedef struct TableNode TableNode;
  */
 #define table_exists(t, k) (__table_exists(t, (void *)(k)))
 
+
+/**
+ * @brief Resets the iteration cursor to the beginning of the table.
+ *
+ * This function performs the action of **rewinding** the internal table cursor, 
+ * setting both the bucket index (cy) and the entry index (cx) to zero. This 
+ * prepares the table for a fresh iteration over all its key-value pairs.
+ *
+ * Example:
+ * ```c
+ * // Prepare for a full table scan iteration
+ * table_rewind(my_table_ptr); 
+ * ```
+ *
+ * @param t The pointer to the hash table (Table type).
+ */
+#define table_rewind(t)     (__table_rewind(t))
+
+// ---
+
+/**
+ * @brief Advances the iteration cursor to the next valid entry in the table.
+ *
+ * This function is used to iterate through all key-value pairs. It moves the 
+ * cursor (cx, cy) to the next element, handling collision chain traversal (cx increment)
+ * and moving to the next bucket (cy increment) when a chain is exhausted.
+ *
+ * Example:
+ * ```c
+ * Entry *next_entry = table_next(Entry, my_table_ptr);
+ * if (next_entry != NULL) { ... }
+ * ```
+ *
+ * @tparam T The expected type of the next entry (e.g., Entry*, KV*, etc.). This 
+ * macro is designed to return a typed pointer for the next element.
+ * @param t The pointer to the hash table (Table type).
+ * @return A typed pointer to the next valid key-value entry, or NULL if the 
+ * iteration has reached the end of the table.
+ */
+#define table_next(T, t)    ((T *)__table_next(t))
+
+
 /**
  * @brief Destroys the table and frees all associated memory.
  *
@@ -138,7 +182,6 @@ typedef struct TableNode TableNode;
 #define table_destroy(t) (__table_destroy(t))
 
 
-
 #ifdef COLLECTIONS_TABLE_IMPLEMENTATION
 
 #include <stdint.h>
@@ -147,9 +190,29 @@ typedef struct TableNode TableNode;
 
 #define TABLE_CAPACITY 100
 
+/**
+ * @brief Structure containing the essential metadata for a generic hash table.
+ *
+ * This header defines the properties of the data stored in the table and holds
+ * temporary state information for iteration and cursor management.
+ */
 typedef struct {
-    size_t key_size;
-    size_t value_size;
+    /** The fixed size, in bytes, of the key for all entries in the table. */
+    size_t  key_size;
+
+    /** The fixed size, in bytes, of the value for all entries in the table. */
+    size_t  value_size;
+
+    /** * The cursor's Y-coordinate (cy). 
+     * In hash tables, this typically represents the current **bucket index** * being inspected within the main array.
+     */
+    size_t  cy;
+    
+    /** * The cursor's X-coordinate (cx). 
+     * In hash tables, this typically represents the **position** (index) of the 
+     * current entry within the **collision chain** (linked list) of the bucket.
+     */
+    size_t  cx;
 } TableHeader;
 
 typedef uint64_t HASH;
@@ -202,7 +265,7 @@ TableNode *__table_node_create__(void *table, void *key, void *value) {
 
 
 void *__table_create(size_t key_size, size_t value_size) {
-    void *p = malloc(sizeof(TableHeader) + TABLE_CAPACITY * sizeof(TableNode *));
+    void *p = calloc(1, sizeof(TableHeader) + TABLE_CAPACITY * sizeof(TableNode *));
     if(!p) {
         fprintf(stderr, "__table_create failed: cannot allocate memory.\n");
         exit(EXIT_FAILURE);
@@ -211,6 +274,9 @@ void *__table_create(size_t key_size, size_t value_size) {
     TableHeader *header = (TableHeader *)p;
     header->key_size    = key_size;
     header->value_size  = value_size;
+
+    header->cx = 0;
+    header->cy = 0;
 
     void *data = (void *)(header + 1);
     return data;
@@ -236,6 +302,7 @@ void *__table_get(void *table, void *key) {
         fprintf(stderr, "__table_get failed: key not found.\n");
         exit(EXIT_FAILURE);
     };
+
     return current->value;
 }
 
@@ -275,13 +342,54 @@ void __table_delete(void *table, void *key) {
     if(!current) return;
 
     prev->next = current->next;
-    if(current->next) current->next->prev = prev;
-
     free(current);
 }
 
 bool __table_exists(void *table, void *key) {
     return __table_get(table, key) != NULL;
+}
+
+void __table_rewind(void *table) {
+    TableHeader *header = tableheader(table);
+    header->cx = 0;
+    header->cy = 0;    
+}
+
+void *__table_next(void *table) {
+    TableHeader *header = tableheader(table);
+    TableNode *current = ((TableNode **)table)[header->cy];
+
+    size_t i = 0;
+    while(current != NULL && i < header->cx) {
+        current = current->next;
+        i += 1;
+    }
+
+    if(header->cx != 0 || header->cy != 0)  current = (current != NULL) ? current->next : NULL;
+
+    if(current != NULL) {
+        header->cx += 1;
+        return current->value;
+    };
+
+    header->cy += 1;
+    current = ((TableNode **)table)[header->cy]; 
+
+    while(current == NULL) {
+        if(header->cy >= TABLE_CAPACITY) break;
+        
+        current = ((TableNode **)table)[header->cy];
+        if(current != NULL) break;
+
+        header->cy += 1;
+    }
+
+    if(current != NULL) {
+        header->cx = 0;
+        return current->value;
+    }
+
+    return NULL;
 }
 
 void __table_destroy(void *table) {
