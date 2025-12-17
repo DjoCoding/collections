@@ -249,7 +249,7 @@ TableNode *__table_node_create__(void *table, void *key, void *value) {
 
     TableNode *node = (TableNode *)malloc(sizeof(TableNode) + header->key_size + header->value_size);
     if(!node) {
-        fprintf(stderr, "__table_set failed: cannot allocate memory\n");
+        fprintf(stderr, "__table_node_create__ failed: cannot allocate memory\n");
         exit(EXIT_FAILURE);
     }
 
