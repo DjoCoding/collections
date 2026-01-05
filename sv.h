@@ -165,6 +165,14 @@ int sv_conv_int(StringView sv);
  */
 float sv_conv_float(StringView sv);
 
+/**
+ * @brief Splits a StringView at the first occurrence of a character.
+ * @param sv Input StringView to be split.
+ * @param c The delimiter character.
+ * @return A StringView containing the part before the delimiter, or the original view if not found. 
+ */
+StringView sv_split(StringView sv, char c);
+
 #define SV(c, s)        ((StringView){ .content = (char *)(c), .size = (s) })
 #define SV_NULL         (SV(NULL, 0))
 #define SV_FMT          "%.*s"
@@ -322,6 +330,13 @@ float sv_conv_float(StringView sv) {
     }
 
     return sign * (result + frac);
+}
+
+StringView sv_split(StringView s, char c) {
+    for(size_t i = 0; i < s.size; ++i) {
+        if(s.content[i] == c) return sv(s.content, i);
+    }
+    return s;
 }
 
 #endif // COLLECTIONS_SV_IMPLEMENTATION
