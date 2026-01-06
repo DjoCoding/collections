@@ -173,8 +173,8 @@ float sv_conv_float(StringView sv);
  */
 StringView sv_split(StringView sv, char c);
 
-#define SV(c, s)        ((StringView){ .content = (char *)(c), .size = (s) })
-#define SV_NULL         (SV(NULL, 0))
+#define SV(c)        ((StringView){ .content = (char *)(c), .size = (c) == NULL ? 0 : (sizeof(c) - 1) })
+#define SV_NULL         (SV(NULL))
 #define SV_FMT          "%.*s"
 #define SV_ARG(s)       (int)(s).size, (s).content
 
@@ -186,11 +186,14 @@ StringView sv_split(StringView sv, char c);
 
 
 StringView sv(char *content, size_t size) {
-    return SV(content, size);
+    return (StringView) {
+        .content = content,
+        .size = size
+    };
 }
 
 StringView sv_from_cstr(char *content) {
-    return SV(content, strlen(content));
+    return sv(content, strlen(content));
 }
 
 StringView sv_lower(StringView sv) {
@@ -227,10 +230,10 @@ StringView sv_trim(StringView sv) {
     return sv_rtrim(sv_ltrim(sv));
 }
 
-StringView sv_slice(StringView sv, size_t lower, size_t upper) {
-    if (lower >= sv.size || upper <= lower) return SV_NULL;
-    if (upper > sv.size) upper = sv.size;
-    return SV(sv.content + lower, upper - lower);
+StringView sv_slice(StringView s, size_t lower, size_t upper) {
+    if (lower >= s.size || upper <= lower) return SV_NULL;
+    if (upper > s.size) upper = s.size;
+    return sv(s.content + lower, upper - lower);
 }
 
 StringView sv_capitalize(StringView sv) {
@@ -241,14 +244,14 @@ StringView sv_capitalize(StringView sv) {
     return sv;
 }
 
-bool sv_endswith(StringView sv, StringView a) {
-    if (a.size > sv.size) return false;
-    return sv_eq(SV(sv.content + sv.size - a.size, a.size), a);
+bool sv_endswith(StringView s, StringView a) {
+    if (a.size > s.size) return false;
+    return sv_eq(sv(s.content + s.size - a.size, a.size), a);
 }
 
-bool sv_beginswith(StringView sv, StringView a) {
-    if (a.size > sv.size) return false;
-    return sv_eq(SV(sv.content, a.size), a);
+bool sv_beginswith(StringView s, StringView a) {
+    if (a.size > s.size) return false;
+    return sv_eq(sv(s.content, a.size), a);
 }
 
 bool sv_eq(StringView a, StringView b) {
